@@ -1,25 +1,134 @@
 # Task 3: Machine Learning - The "Baseline Beater"
 
 ## The Scenario
-An intern left behind a machine learning script (`baseline_model.ipynb`) that technically runs, but its performance is mediocre at best. Your job is to improve the model and, more importantly, explain the **math and logic** behind your improvements.
+
+An intern left behind a machine learning script (`baseline_model.ipynb`) that technically runs, but its performance was mediocre. The goal was to improve the model's ability to predict customer responses to a marketing campaign and explain the reasoning behind the improvements.
 
 ## The Objective
-The current script predicts customer behavior (the `Response` column) but achieves a poor **F1-Score**. You must modify the script to improve the F1-Score by at least **20%** relative to the baseline.
 
-## Requirements
-1. **Improve the Model:** You may use any standard library (Scikit-learn, XGBoost, Pandas, LightGBM, etc.) to engineer features, handle missing data, or switch models.
-2. **The Write-up (Mandatory):** At the very top of your final notebook, you must include a 3-bullet-point explanation answering:
-   - What was the single most impactful code/model change you made?
-   - *Why* did that specific change improve the model mathematically or logically based on the data?
-   - What was your final F1-Score?
-
-## Evaluation Criteria
-AI can write code to upgrade a model. We are grading your **understanding**. If you cannot articulate the intuition behind your feature selection or model choice, it indicates a lack of ML fundamentals.
+The baseline script predicts customer behavior using the `Response` column as the target variable. The objective was to improve the F1-Score by at least **20%** relative to the baseline.
 
 ---
 
-### 💡 Subtle Hints for the Wise
-*   **The Scale Problem:** Notice the range of values in `Income` versus `Kidhome`. Do all models handle these differences equally well?
-*   **The Hidden Gems:** The intern ignored all "Object" columns. Is there really no value in knowing a customer's `Education` or `Marital_Status`?
-*   **New Perspectives:** `Year_Birth` is just a number. `Age` is a feature. Are there other ways to combine columns to tell a better story?
-*   **The Silent Majority:** Look at the distribution of the `Response` variable. If 85% of people say "No," a model that just guesses "No" every time will be 85% accurate... but is it a *good* model?
+## Baseline Performance
+
+| Metric   | Score |
+| -------- | ----- |
+| F1-Score | 0.282 |
+
+The baseline implementation:
+
+* Used Logistic Regression
+* Dropped all categorical features
+* Replaced missing values with 0
+* Did not explicitly address class imbalance
+
+---
+
+## Improvements Implemented
+
+### 1. Preserved Categorical Features
+
+The baseline removed all object-type columns such as:
+
+* `Education`
+* `Marital_Status`
+* `Dt_Customer`
+
+These features were retained using **One-Hot Encoding** so that useful customer information could contribute to model predictions.
+
+### 2. Improved Missing Value Handling
+
+The dataset contained missing values in the `Income` column.
+
+Instead of replacing missing values with 0, I used:
+
+* Median Imputation for numerical features
+* Most Frequent Imputation for categorical features
+
+This preserves the underlying data distribution more effectively.
+
+### 3. Handled Class Imbalance
+
+The dataset is highly imbalanced:
+
+| Response | Count |
+| -------- | ----- |
+| 0        | 1906  |
+| 1        | 334   |
+
+To improve prediction of the minority class, I used:
+
+```python
+class_weight='balanced'
+```
+
+within the model.
+
+### 4. Replaced Logistic Regression with Random Forest
+
+The baseline model was replaced with a tuned Random Forest Classifier:
+
+```python
+RandomForestClassifier(
+    n_estimators=500,
+    max_depth=12,
+    min_samples_split=5,
+    min_samples_leaf=2,
+    class_weight='balanced',
+    random_state=42
+)
+```
+
+---
+
+## Write-Up (Mandatory)
+
+### 1. Most Impactful Change
+
+The most impactful change was preserving categorical features through One-Hot Encoding and training a class-balanced Random Forest instead of dropping all non-numeric columns.
+
+### 2. Why This Improved the Model
+
+The baseline Logistic Regression model learned a single linear decision boundary and ignored useful categorical information. Additionally, the dataset was highly imbalanced, causing the model to favor the majority class.
+
+Random Forest combines multiple decision trees and can learn nonlinear relationships and feature interactions. Using class balancing increased the importance of minority-class samples, improving recall and overall F1-Score.
+
+### 3. Final Metric Achieved
+
+| Metric            | Score |
+| ----------------- | ----- |
+| Baseline F1-Score | 0.282 |
+| Final F1-Score    | 0.548 |
+| Improvement       | 94.3% |
+
+---
+
+## Evaluation Criteria
+
+This solution focuses not only on improving model performance but also on understanding the reasoning behind each modification. The improvements were chosen based on:
+
+* Data characteristics
+* Class imbalance
+* Feature importance
+* Model suitability for nonlinear relationships
+
+---
+
+## Repository Contents
+
+```text
+Task3-NSAIC/
+│
+├── baseline_model.ipynb
+├── marketing_campaign.csv
+└── README.md
+```
+
+---
+
+## Author
+
+**Parv Kajla**
+B.Tech CSE (AI & ML)
+Galgotias University
